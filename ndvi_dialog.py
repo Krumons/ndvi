@@ -24,6 +24,8 @@
 import os
 
 from PyQt4 import QtGui, uic
+from qgis.core import QgsMapLayer
+from qgis.core import QgsMapLayerRegistry
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'ndvi_dialog_base.ui'))
@@ -39,3 +41,14 @@ class ndviDialog(QtGui.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+    def load_images(self):
+        layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        for layer in layers:
+            if layer.type() == QgsMapLayer.RasterLayer:
+                self.R_combo_box.addItem( layer.name(), layer )
+                self.NIR_combo_box.addItem( layer.name(), layer )
+
+    def get_selected_images(self):
+        r_layer = R_combo_box.itemData(R_combo_box.currentIndex())
+        nir_layer =  NIR_combo_box.itemData(NIR_combo_box.currentIndex())

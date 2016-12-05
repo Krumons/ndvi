@@ -103,4 +103,3 @@ class Ui_ndviDialogBase(object):
         self.load_to_canvas.setText(_translate("ndviDialogBase", "Load to canvas", None))
         self.label_4.setText(_translate("ndviDialogBase", "Output", None))
         self.browse_button.setText(_translate("ndviDialogBase", "Browse...", None))
-

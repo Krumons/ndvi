@@ -8,6 +8,14 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import QFileDialog
+from qgis.core import QgsProject
+from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsMapLayer
+from logger import Logger
+from water_calculator import WaterCalculator
+
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -24,10 +32,11 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_ndviDialogBase(object):
-    def setupUi(self, ndviDialogBase):
+    def __init__(self, ndviDialogBase):
         ndviDialogBase.setObjectName(_fromUtf8("ndviDialogBase"))
         ndviDialogBase.resize(400, 300)
         self.button_box = QtGui.QDialogButtonBox(ndviDialogBase)
+        self.button_box.accepted.connect(self.accepted)
         self.button_box.setGeometry(QtCore.QRect(30, 240, 341, 32))
         self.button_box.setOrientation(QtCore.Qt.Horizontal)
         self.button_box.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
@@ -86,6 +95,7 @@ class Ui_ndviDialogBase(object):
         self.output_file_text_box.setObjectName(_fromUtf8("output_file_text_box"))
         self.horizontalLayout.addWidget(self.output_file_text_box)
         self.browse_button = QtGui.QPushButton(self.verticalLayoutWidget_4)
+        self.browse_button.clicked.connect(self.open_browse)
         self.browse_button.setObjectName(_fromUtf8("browse_button"))
         self.horizontalLayout.addWidget(self.browse_button)
         self.verticalLayout_5.addLayout(self.horizontalLayout)
@@ -95,6 +105,8 @@ class Ui_ndviDialogBase(object):
         QtCore.QObject.connect(self.button_box, QtCore.SIGNAL(_fromUtf8("rejected()")), ndviDialogBase.reject)
         QtCore.QMetaObject.connectSlotsByName(ndviDialogBase)
 
+        self.load_images()
+
     def retranslateUi(self, ndviDialogBase):
         ndviDialogBase.setWindowTitle(_translate("ndviDialogBase", "1NDVI", None))
         self.label.setText(_translate("ndviDialogBase", "R:", None))
@@ -103,3 +115,42 @@ class Ui_ndviDialogBase(object):
         self.load_to_canvas.setText(_translate("ndviDialogBase", "Load to canvas", None))
         self.label_4.setText(_translate("ndviDialogBase", "Output", None))
         self.browse_button.setText(_translate("ndviDialogBase", "Browse...", None))
+
+    def load_images(self):
+        Logger.log("Loading images")
+        layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        for layer in layers:
+            if layer.type() == QgsMapLayer.RasterLayer:
+                self.R_combo_box.addItem( layer.name(), layer )
+                self.NIR_combo_box.addItem( layer.name(), layer )
+
+    def open_browse(self):
+        filename1 = QFileDialog.getSaveFileName(None, 'Save As', QgsProject.instance().readPath("./") , '*.tif')
+        self.output_file_text_box.setText(filename1)
+
+    # def get_load_to_canvas(self):
+    #     return self.load_to_canvas.checkState()
+    #
+    # def get_red_layer(self):
+    #     return "Path to red layer"
+    #     # return str(self.R_combo_box.currentText())
+    #
+    # def get_nir_layer(self):
+    #     return str(self.NIR_combo_box.currentText())
+    #
+    # def get_ndvi_threshold(self):
+    #     return self.ndvi_text_box.text()
+    #
+    # def get_output_file_name(self):
+    #     return self.output_file_text_box.text()
+
+    def accepted(self):
+        Logger.log("OK button pressed")
+        red_layer = str(self.R_combo_box.currentText())
+        nir_layer = str(self.NIR_combo_box.currentText())
+        ndvi_threshold = str(self.ndvi_text_box.text())
+        output_file_name = str(self.output_file_text_box.text())
+        load_to_canvas = str(self.load_to_canvas.checkState())
+
+        calculator = WaterCalculator(red_layer, nir_layer, ndvi_threshold, output_file_name, load_to_canvas)
+        calculator.calculate_water_area()

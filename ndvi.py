@@ -22,6 +22,8 @@
 """
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt4.QtGui import QAction, QIcon
+from logger import Logger
+
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
@@ -184,7 +186,6 @@ class ndvi:
         """Run method that performs all the real work"""
         # show the dialog
         self.dlg.show()
-        self.dlg.load_images()
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed

@@ -99,13 +99,10 @@ class Ui_ndviDialogBase(object):
         self.browse_button.setObjectName(_fromUtf8("browse_button"))
         self.horizontalLayout.addWidget(self.browse_button)
         self.verticalLayout_5.addLayout(self.horizontalLayout)
-
         self.retranslateUi(ndviDialogBase)
         QtCore.QObject.connect(self.button_box, QtCore.SIGNAL(_fromUtf8("accepted()")), ndviDialogBase.accept)
         QtCore.QObject.connect(self.button_box, QtCore.SIGNAL(_fromUtf8("rejected()")), ndviDialogBase.reject)
         QtCore.QMetaObject.connectSlotsByName(ndviDialogBase)
-
-        self.load_images()
 
     def retranslateUi(self, ndviDialogBase):
         ndviDialogBase.setWindowTitle(_translate("ndviDialogBase", "1NDVI", None))
@@ -116,9 +113,10 @@ class Ui_ndviDialogBase(object):
         self.label_4.setText(_translate("ndviDialogBase", "Output", None))
         self.browse_button.setText(_translate("ndviDialogBase", "Browse...", None))
 
-    def load_images(self):
+    def load_images(self, iface):
         Logger.log("Loading images")
-        layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        self.iface = iface
+        layers = iface.legendInterface().layers()
         for layer in layers:
             if layer.type() == QgsMapLayer.RasterLayer:
                 self.R_combo_box.addItem( layer.name(), layer )
@@ -127,22 +125,6 @@ class Ui_ndviDialogBase(object):
     def open_browse(self):
         filename1 = QFileDialog.getSaveFileName(None, 'Save As', QgsProject.instance().readPath("./") , '*.tif')
         self.output_file_text_box.setText(filename1)
-
-    # def get_load_to_canvas(self):
-    #     return self.load_to_canvas.checkState()
-    #
-    # def get_red_layer(self):
-    #     return "Path to red layer"
-    #     # return str(self.R_combo_box.currentText())
-    #
-    # def get_nir_layer(self):
-    #     return str(self.NIR_combo_box.currentText())
-    #
-    # def get_ndvi_threshold(self):
-    #     return self.ndvi_text_box.text()
-    #
-    # def get_output_file_name(self):
-    #     return self.output_file_text_box.text()
 
     def accepted(self):
         Logger.log("OK button pressed")
@@ -153,4 +135,7 @@ class Ui_ndviDialogBase(object):
         load_to_canvas = str(self.load_to_canvas.checkState())
 
         calculator = WaterCalculator(red_layer, nir_layer, ndvi_threshold, output_file_name, load_to_canvas)
-        calculator.calculate_water_area()
+        output = calculator.calculate_water_area()
+        Logger.log("Checkbox status: " + str(self.load_to_canvas.checkState()))
+        if self.load_to_canvas.checkState()==2:
+            layer = self.iface.addRasterLayer(output, "Leyer calculated with ndvi plugin")

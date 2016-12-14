@@ -39,3 +39,6 @@ class ndviDialog(QtGui.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.ui = Ui_ndviDialogBase(self)
+
+    def load_images(self, iface):
+        self.ui.load_images(iface)

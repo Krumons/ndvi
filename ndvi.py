@@ -136,6 +136,8 @@ class ndvi:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = ndviDialog()
+        self.dlg.load_images(self.iface)
+
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)

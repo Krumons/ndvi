@@ -9,6 +9,7 @@
 
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QFileDialog
+from PyQt4.QtCore import QFile, QFileInfo
 from qgis.core import QgsProject
 from qgis.core import QgsMapLayerRegistry
 from qgis.core import QgsMapLayer
@@ -119,8 +120,8 @@ class Ui_ndviDialogBase(object):
         layers = iface.legendInterface().layers()
         for layer in layers:
             if layer.type() == QgsMapLayer.RasterLayer:
-                self.R_combo_box.addItem( layer.name(), layer )
-                self.NIR_combo_box.addItem( layer.name(), layer )
+                self.R_combo_box.addItem( layer.name(), layer.source() )
+                self.NIR_combo_box.addItem( layer.name(), layer.source() )
 
     def open_browse(self):
         filename1 = QFileDialog.getSaveFileName(None, 'Save As', QgsProject.instance().readPath("./") , '*.tif')
@@ -128,8 +129,8 @@ class Ui_ndviDialogBase(object):
 
     def accepted(self):
         Logger.log("OK button pressed")
-        red_layer = str(self.R_combo_box.currentText())
-        nir_layer = str(self.NIR_combo_box.currentText())
+        red_layer = str(self.R_combo_box.itemData(self.R_combo_box.currentIndex()))
+        nir_layer = str(self.NIR_combo_box.itemData(self.NIR_combo_box.currentIndex()))
         ndvi_threshold = str(self.ndvi_text_box.text())
         output_file_name = str(self.output_file_text_box.text())
         load_to_canvas = str(self.load_to_canvas.checkState())
@@ -138,4 +139,4 @@ class Ui_ndviDialogBase(object):
         output = calculator.calculate_water_area()
         Logger.log("Checkbox status: " + str(self.load_to_canvas.checkState()))
         if self.load_to_canvas.checkState()==2:
-            layer = self.iface.addRasterLayer(output, "Leyer calculated with ndvi plugin")
+            layer = self.iface.addRasterLayer(output, "Layer calculated with ndvi plugin")

@@ -10,17 +10,20 @@ class WaterCalculator(object):
         def __init__(self, rband, nirband, ndvi_thr, output, load):
             Logger.log("Initializing water calculator")
             self.project_path = QgsProject.instance().readPath("./")
-            self.r_band_path =  str(self.project_path) + '/' + str(rband) + '.tif'
-            self.nir_band_path = str(self.project_path)+ '/' + str(nirband) + '.tif'
+            self.r_band_path =  rband
+            self.nir_band_path = nirband
+            Logger.log(rband + " " + nirband)
             self.output_file_path = output
             self.ndvi_threshold = ndvi_thr
             self.load_to_canvas = load
             self.geo_info = ''
+            self.geo_projection = ''
 
         def open_tiff(self, path):
             Logger.log("Opening file")
             Logger.log("File path " + str(path))
             dataset = gdal.Open(path, GA_ReadOnly )
+            self.geo_projection = dataset.GetProjection()
             self.geo_info = dataset.GetGeoTransform()
             band1 = dataset.GetRasterBand(1)
             dataArray = dataset.ReadAsArray()
@@ -36,14 +39,13 @@ class WaterCalculator(object):
             self.ndvi = self.calculate_ndvi(r,nir)
             self.ndvi[self.ndvi < int(thr)] = 0
             self.ndvi[self.ndvi > int(thr)] = 1
-            Logger.log(self.ndvi)
-
             return self.ndvi
 
         def write_to_file(self, output, data):
             Logger.log(self.ndvi.shape)
             out_ds = gdal.GetDriverByName('GTiff').Create(output, self.ndvi.shape[1], self.ndvi.shape[0], 1, gdal.GDT_Byte)
             out_ds.SetGeoTransform(self.geo_info)
+            out_ds.SetProjection(self.geo_projection)
             out_ds.GetRasterBand(1).WriteArray(data)
             out_ds.FlushCache()
 
